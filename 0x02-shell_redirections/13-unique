@@ -1,0 +1,2 @@
+#!/bin/bash
+echo "Juwon Thelma Ade Juwon Tosin Ade" | sort | uniq -u 
