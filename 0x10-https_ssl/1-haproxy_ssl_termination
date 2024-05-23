@@ -1,0 +1,37 @@
+#!/bin/bash
+global                                                       
+        log 127.0.0.1 local0 notice                          
+        maxconn 2048                                         
+        tune.ssl.default-dh-param 2048                       
+        user haproxy                                         
+        group haproxy                                        
+                                                             
+defaults                                                     
+        log global                                           
+        mode http                                            
+        option httplog                                       
+        option dontlognull                                   
+        option forwardfor                                    
+        option http-server-close                             
+        retries 3                                            
+        option redispatch                                    
+        timeout connect 5000                                 
+        timeout client 10000                                 
+        timeout server 10000                                 
+                                                             
+frontend www-https                                           
+   bind 0.0.0.0:443 ssl crt /etc/haproxy/certs/msmith.online.pem
+   reqadd X-Forwarded-Proto:\ https                          
+   acl letsencrypt-acl path_beg /.well-known/acme-challenge/ 
+   use_backend letsencrypt-backend if letsencrypt-acl        
+   default_backend www-backend                               
+                                                             
+backend www-backend                                          
+        redirect scheme https if '!{ ssl_fc }'                 
+        balance roundrobin                                   
+        server 530754-web-01 18.209.178.249:80 check              
+        server 530754-web-02 54.160.93.168:80 check             
+                                                             
+backend letsencrypt-backend                                  
+   server letsencrypt 127.0.0.1:54321               
+
